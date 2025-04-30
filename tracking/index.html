@@ -29,7 +29,21 @@
 
     <script>
         // const API_URL = 'http://nnodc.fmi.fi:8081/api/tracking/'; // TODO: replace with your actual API URL
-        const API_URL = 'https://kimmotikka.github.io/tracking/location/gtrack.json'
+        // const API_URL = 'https://kimmotikka.github.io/tracking/location/gtrack.json'
+        const API_BASE = 'http://nnodc.fmi.fi:8082'; // <-- replace with your API domain
+        const POSITIONS_URL = `${API_BASE}/positions`;
+
+        // Get UID from localStorage, or ask the user
+        function getUid() {
+            let uid = localStorage.getItem("glider_uid");
+            if (!uid) {
+                uid = prompt("Please enter your UID:");
+                if (uid) localStorage.setItem("glider_uid", uid);
+            }
+            return uid;
+        }
+
+
         function toRadians(degrees) {
             return degrees * Math.PI / 180;
         }
@@ -81,19 +95,28 @@
 
         navigator.geolocation.getCurrentPosition(position => {
             const { latitude, longitude } = position.coords;
+            const uid = getUid();
 
-            fetch(API_URL)
-                .then(response => response.json())
+            fetch(POSITIONS_URL, {
+                headers: {
+                    "Authorization": `Bearer ${uid}`
+                }
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("Access denied or server error.");
+                    return res.json();
+                })
                 .then(data => {
-                    const gliders = data.glider || [];
-                    updateTable(gliders, latitude, longitude);
+                    // Process the glider JSON data here
+                    updateTable(data.glider, currentLat, currentLon);
                 })
                 .catch(err => {
-                    alert("Failed to fetch glider data: " + err);
+                    alert("Error: " + err.message);
                 });
+
         }, err => {
             alert("Failed to get your location: " + err.message);
         });
-    </script>
+     </script>
 </body>
 </html>
