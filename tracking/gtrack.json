@@ -1,0 +1,22 @@
+{
+    "glider": [
+        {
+            "id": 37,
+            "filename": "uivelo-2025-04-23T09:29",
+            "latitude": 60.7352,
+            "longitude": 19.4755,
+            "timestamp": 1746003369.0,
+            "datetime": "2025-04-30 08:56:09",
+            "glider": "uivelo"
+        },
+        {
+            "id": 35,
+            "filename": "unit_1226-2025-03-24T09:21",
+            "latitude": 59.8878,
+            "longitude": 23.2299,
+            "timestamp": 1743076104.0,
+            "datetime": "2025-03-27 11:48:24",
+            "glider": "ng"
+        }
+    ]
+}
