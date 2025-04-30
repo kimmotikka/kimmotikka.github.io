@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glider Tracker</title>
+    <style>
+        body { font-family: sans-serif; padding: 1em; }
+        table { border-collapse: collapse; width: 100%; margin-top: 1em; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+    <h1>Glider Tracker</h1>
+    <p>Getting your location and fetching glider data...</p>
+    <table id="gliderTable">
+        <thead>
+            <tr>
+                <th>Glider</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+                <th>Distance (km)</th>
+                <th>Bearing (°)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        const API_URL = 'https://nnodc.fmi.fi/glider/test/gdata.json'; // TODO: replace with your actual API URL
+
+        function toRadians(degrees) {
+            return degrees * Math.PI / 180;
+        }
+
+        function toDegrees(radians) {
+            return radians * 180 / Math.PI;
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // km
+            const dLat = toRadians(lat2 - lat1);
+            const dLon = toRadians(lon2 - lon1);
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function calculateBearing(lat1, lon1, lat2, lon2) {
+            const dLon = toRadians(lon2 - lon1);
+            const y = Math.sin(dLon) * Math.cos(toRadians(lat2));
+            const x = Math.cos(toRadians(lat1)) * Math.sin(toRadians(lat2)) -
+                      Math.sin(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.cos(dLon);
+            return (toDegrees(Math.atan2(y, x)) + 360) % 360;
+        }
+
+        function updateTable(gliders, currentLat, currentLon) {
+            const tbody = document.querySelector("#gliderTable tbody");
+            tbody.innerHTML = '';
+
+            gliders.forEach(entry => {
+                if (!entry.latitude || !entry.longitude || !entry.glider) return;
+
+                const dist = calculateDistance(currentLat, currentLon, entry.latitude, entry.longitude).toFixed(2);
+                const bearing = calculateBearing(currentLat, currentLon, entry.latitude, entry.longitude).toFixed(1);
+
+                const row = `<tr>
+                    <td>${entry.glider}</td>
+                    <td>${entry.latitude}</td>
+                    <td>${entry.longitude}</td>
+                    <td>${dist}</td>
+                    <td>${bearing}</td>
+                </tr>`;
+
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        navigator.geolocation.getCurrentPosition(position => {
+            const { latitude, longitude } = position.coords;
+
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    const gliders = data.glider || [];
+                    updateTable(gliders, latitude, longitude);
+                })
+                .catch(err => {
+                    alert("Failed to fetch glider data: " + err);
+                });
+        }, err => {
+            alert("Failed to get your location: " + err.message);
+        });
+    </script>
+</body>
+</html>
