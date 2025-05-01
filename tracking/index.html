@@ -96,7 +96,7 @@
         navigator.geolocation.getCurrentPosition(position => {
             const { latitude, longitude } = position.coords;
             const uid = getUid();
-
+            console.log("purl ", POSITIONS_URL);
             fetch(POSITIONS_URL, {
                 headers: {
                     "Authorization": `Bearer ${uid}`
